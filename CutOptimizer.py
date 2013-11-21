@@ -87,35 +87,25 @@ class CutOptimizer:
         return max_x_array, max_choice
 
     
-    def _move_x_array(self, x_array, x_array_initial):
+    def _move_x_array(self, x_array):
         """Aids in finding the next set of bin numbers for the
         n_sided_optimization
         
         """
-        x_array_status = ["NA","NA"]
+        array_size = len(x_array)
+        n = array_size - 2
 
-        for i in range(len(x_array)-2):
-            x_array_status.insert(-1, "OK")
-
-        for i in range(len(x_array)):
-            if x_array_status[i] == "NA":
-                continue
-            if x_array[i]+1 == x_array[i+1]:
-                x_array_status[i] = "RESET"
+        for i in range(1, n):
+            if x_array[i] + 1 == x_array[i + 1]:
+                x_array[i] = i
             else:
                 x_array[i] += 1
-                break
+                return True
+        if x_array[n] + 1 == x_array[n + 1]:
+            return False
+        x_array[n] += 1
+        return True
 
-        if x_array_status[-2] == "RESET":
-            return False, x_array
-        for i in range(len(x_array)):
-            if x_array_status[i] == "NA":
-                continue
-            if x_array_status[i] == "RESET":
-                x_array[i] = x_array_initial[i]
-            else:
-                break
-        return True, x_array
 
     def _compute_max_statistic(self, sig, bkg, n, side, x_min, x_max):
         """Aids in integration and finding the max statistic in the 
@@ -132,7 +122,6 @@ class CutOptimizer:
         for i in range(n):
             x_array.append(x_min+i)
         x_array.append(x_max)
-        x_array_initial = x_array[:]
         continue_to_move = True
         while continue_to_move == True:
             odd_stat = 0
@@ -172,6 +161,6 @@ class CutOptimizer:
                     max_statistic = even_stat
                     max_x_array = x_array[:]
                     max_choice = "even"
-            continue_to_move, x_array = self._move_x_array(x_array, x_array_initial)
+            continue_to_move = self._move_x_array(x_array)
         return max_statistic, max_x_array, max_choice
     
